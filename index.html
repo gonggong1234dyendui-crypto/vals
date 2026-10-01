@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 防盗链防拦截标头 -->
+    <meta name="referrer" content="no-referrer">
+    <title>荣誉盒 2.0 - 极简打碟版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; transition: none !important; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace, sans-serif;
+            background-color: #080808;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+        #main {
+            max-width: 440px;
+            width: 100%;
+            background: #121212;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #262626;
+            position: relative;
+        }
+
+        /* 顶部步骤导航 */
+        .page-step-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #000;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #222;
+            margin-bottom: 14px;
+            font-size: 11px;
+            color: #666;
+        }
+        .page-step-bar .step.active { color: #fff; font-weight: bold; }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #282828;
+        }
+        .panel-title { font-size: 15px; font-weight: bold; color: #ffffff; display: flex; align-items: center; gap: 6px; }
+
+        .btn-sm {
+            padding: 4px 10px; background: #222222; border: 1px solid #3a3a3a;
+            color: #d1d5db; font-size: 11px; border-radius: 6px; cursor: pointer;
+        }
+        .btn-sm:hover { background: #333333; color: #fff; }
+
+        /* 第 1 页：导入界面 */
+        #page1 { display: block; }
+        .p1-box {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .p1-desc { font-size: 12px; color: #aaaaaa; margin-bottom: 12px; line-height: 1.5; }
+        .btn-big {
+            width: 100%;
+            padding: 11px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .btn-fast { background: #16a34a; color: #fff; border: none; }
+        .btn-zip { background: #2563eb; color: #fff; border: none; }
+        .btn-download { background: #333; color: #ccc; border: 1px solid #444; }
+
+        /* 第 2、3 页打碟界面 */
+        #page2, #page3 { display: none; }
+
+        .sound-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .sound-card {
+            position: relative;
+            background: #161616;
+            color: #ffffff;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            height: 64px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0 8px;
+            text-align: center;
+        }
+        .sound-card:active { background: #222222; }
+
+        .key-badge {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            font-size: 9px;
+            color: #888888;
+            font-family: monospace;
+            background: #0d0d0d;
+            border: 1px solid #2e2e2e;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* 高亮播放 */
+        .sound-card.playing {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border-color: #ffffff !important;
+            font-weight: bold !important;
+        }
+        .sound-card.playing .key-badge {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .controls-bar {
+            background: #0a0a0a;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #222222;
+            margin-bottom: 12px;
+        }
+        .vol-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #888888; }
+        .vol-row input { flex: 1; accent-color: #ffffff; }
+
+        .btn-stop { width: 100%; padding: 8px; border-radius: 6px; background: #ffffff; color: #000; border: none; font-weight: bold; cursor: pointer; margin-top: 8px; }
+
+        .page-link {
+            display: block; text-align: center; font-size: 12px; color: #38bdf8;
+            text-decoration: underline; cursor: pointer; padding: 6px 0;
+        }
+
+        .custom-upload-box {
+            background: #0a0a0a; border: 1px dashed #333; border-radius: 8px;
+            padding: 10px; margin-bottom: 12px;
+        }
+        .input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+        .input-text {
+            flex: 1; padding: 6px 10px; border-radius: 4px; border: 1px solid #333;
+            background: #161616; color: #fff; font-size: 12px; outline: none;
+        }
+
+        /* 弹窗 */
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85); display: none;
+            justify-content: center; align-items: center; z-index: 1000; padding: 15px;
+        }
+        .modal-content {
+            background: #121212; border-radius: 8px; max-width: 380px; width: 100%;
+            border: 1px solid #333333; padding: 16px; max-height: 80vh; display: flex; flex-direction: column;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: bold; }
+        .row-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; font-size: 13px; }
+        .btn-bind { padding: 4px 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; cursor: pointer; font-size: 11px; }
+
+        .toast {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            background: #ffffff; color: #000000; padding: 6px 14px; border-radius: 4px;
+            font-size: 11px; font-weight: bold; opacity: 0; pointer-events: none; z-index: 9999;
+        }
+        .toast.show { opacity: 1; }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div class="page-step-bar">
+            <span class="step active" id="st1">1. 离线载入/上传</span>
+            <span class="step" id="st2">2. 极简打碟主页</span>
+            <span class="step" id="st3">3. 自定义拓展</span>
+        </div>
+
+        <!-- ================= 第 1 页：导入界面 ================= -->
+        <div id="page1">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fas fa-file-archive"></i> 音频库快速载入</div>
+            </div>
+
+            <div class="p1-box">
+                <p class="p1-desc">点击绿色按钮联网拉取这 <b>10 个精选音频</b> 并存入本地数据库。</p>
+                
+                <button class="btn-big btn-fast" onclick="autoFetchAndSave()"><i class="fas fa-cloud-download-alt"></i> 联网拉取并载入 10 个基础音频</button>
+
+                <button class="btn-big btn-zip" onclick="document.getElementById('zipOrFolderInput').click()"><i class="fas fa-file-import"></i> 上传 ZIP 压缩包 / 文件夹</button>
+                
+                <button class="btn-big btn-download" onclick="downloadZipToDesktop()"><i class="fas fa-download"></i> 打包下载这 10 个音频为 ZIP 包</button>
+                
+                <input type="file" id="zipOrFolderInput" accept=".zip,audio/*" multiple webkitdirectory directory onchange="handleZipOrFolderUpload(event)">
+            </div>
+
+            <button class="btn-big" style="background:#1a1a1a; color:#888;" onclick="goToPage(2)">直接进入主页 ➔</button>
+        </div>
+
+        <!-- ================= 第 2 页：核心打碟主界面 ================= -->
+        <div id="page2">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fas fa-th-large"></i> 荣誉盒 2.0</div>
+                <button class="btn-sm" onclick="openKeyModal('main')"><i class="fas fa-keyboard"></i> 改键</button>
+            </div>
+
+            <div class="sound-grid" id="mainSoundGrid"></div>
+
+            <div class="controls-bar">
+                <div class="vol-row">
+                    <i class="fas fa-volume-up"></i>
+                    <input type="range" class="vol-range" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)">
+                    <span class="vol-num">100%</span>
+                </div>
+                <button class="btn-stop" onclick="stopAll()"><i class="fas fa-stop"></i> 停止播放</button>
+            </div>
+
+            <a class="page-link" onclick="goToPage(3)">👉 进入 3.0 自定义拓展页 (自备音频)</a>
+        </div>
+
+        <!-- ================= 第 3 页：自定义扩展页 ================= -->
+        <div id="page3">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fas fa-plus-circle"></i> 自定义拓展界面</div>
+                <button class="btn-sm" onclick="openKeyModal('custom')"><i class="fas fa-keyboard"></i> 改键</button>
+            </div>
+
+            <div class="custom-upload-box">
+                <div style="font-size: 11px; color: #aaa; margin-bottom: 6px;">上传自备音频：</div>
+                <div class="input-row">
+                    <input type="text" id="customNameInput" class="input-text" placeholder="输入名称(例: 尖叫)">
+                    <button class="btn-sm" onclick="document.getElementById('customAudioFile').click()">选择文件</button>
+                    <input type="file" id="customAudioFile" accept="audio/*" onchange="handleAddCustomAudio(event)">
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #ccc;">
+                    <input type="checkbox" id="chkInherit" checked onchange="renderPage3Grid()" style="accent-color:#fff;">
+                    <label for="chkInherit">继承主页面的 10 个基础音效与热键</label>
+                </div>
+            </div>
+
+            <div class="sound-grid" id="customSoundGrid"></div>
+
+            <div class="controls-bar">
+                <div class="vol-row">
+                    <i class="fas fa-volume-up"></i>
+                    <input type="range" class="vol-range" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)">
+                    <span class="vol-num">100%</span>
+                </div>
+                <button class="btn-stop" onclick="stopAll()"><i class="fas fa-stop"></i> 停止播放</button>
+            </div>
+
+            <a class="page-link" onclick="goToPage(2)">⬅ 返回主打碟界面</a>
+        </div>
+    </div>
+
+    <!-- 热键弹窗 -->
+    <div class="modal" id="keyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>⌨️ 热键设置 (支持组合键)</span>
+                <i class="fas fa-times" style="cursor:pointer;" onclick="closeKeyModal()"></i>
+            </div>
+            <div id="keyModalList" style="overflow-y:auto; flex:1;"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    // 严格核对自您提供的原始 LI 列表中对应的 10 个核心音效媒体链接
+    const BASE_SOUNDS = [
+        { id: "1", name: "卡啦", defaultKey: "HOME", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MTQ=" },
+        { id: "2", name: "卡键", defaultKey: "ARROWUP", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MTU=" },
+        { id: "3", name: "被狗运了", defaultKey: "ARROWLEFT", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MzI=" },
+        { id: "4", name: "vamos", defaultKey: "ARROWRIGHT", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MDc=" },
+        { id: "5", name: "你们在干嘛", defaultKey: "PAGEDOWN", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MTE=" },
+        { id: "6", name: "这不是外挂", defaultKey: "ARROWDOWN", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1Mzc=" },
+        { id: "7", name: "呀嘞呀嘞（缓慢版）", defaultKey: "PAGEUP", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MTg=" },
+        { id: "8", name: "对面是职业没办法", defaultKey: "END", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MjA=" },
+        { id: "9", name: "皮肤有问题，没办法", defaultKey: "INSERT", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MzA=" },
+        { id: "10", name: "剩一滴血没办法", defaultKey: "DELETE", url: "https://res.wx.qq.com/voice/getvoice?mediaid=MzY4ODQwMDUyOV8xMDAwMDE1MTI=" }
+    ];
+
+    let currentPage = 1;
+    let customKeys = JSON.parse(localStorage.getItem('custom_keys_v3') || "{}");
+    let customSounds = JSON.parse(localStorage.getItem('custom_sounds_v3') || "[]");
+    let listeningSoundId = null;
+    let currentModalTarget = 'main';
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const gainNode = audioCtx.createGain();
+    gainNode.connect(audioCtx.destination);
+    let activeSources = [];
+    let activeCards = [];
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open('HonorBox31DB', 1);
+            req.onupgradeneeded = e => e.target.result.createObjectStore('files');
+            req.onsuccess = e => resolve(e.target.result);
+            req.onerror = e => reject(e);
+        });
+    }
+
+    async function saveFileToDB(name, blob) {
+        const db = await openDB();
+        const tx = db.transaction('files', 'readwrite');
+        tx.objectStore('files').put(blob, name);
+    }
+
+    async function getFileFromDB(name) {
+        const db = await openDB();
+        return new Promise(resolve => {
+            const tx = db.transaction('files', 'readonly');
+            const req = tx.objectStore('files').get(name);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+        });
+    }
+
+    function goToPage(pageNum) {
+        currentPage = pageNum;
+        document.getElementById('page1').style.display = pageNum === 1 ? 'block' : 'none';
+        document.getElementById('page2').style.display = pageNum === 2 ? 'block' : 'none';
+        document.getElementById('page3').style.display = pageNum === 3 ? 'block' : 'none';
+
+        document.querySelectorAll('.step').forEach((el, idx) => {
+            if (idx + 1 === pageNum) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+
+        if (pageNum === 2) renderPage2Grid();
+        if (pageNum === 3) renderPage3Grid();
+    }
+
+    async function autoFetchAndSave() {
+        showToast("正在联网拉取 10 个基础音频...");
+        let count = 0;
+        for (let sound of BASE_SOUNDS) {
+            if (!sound.url) continue;
+            try {
+                const res = await fetch(sound.url).catch(() => null);
+                if (res && res.ok) {
+                    const blob = await res.blob();
+                    await saveFileToDB(sound.name, blob);
+                    count++;
+                }
+            } catch(e){
+                console.error("拉取失败:", sound.name, e);
+            }
+        }
+        
+        showToast(`拉取完毕！正在进入主页...`);
+        setTimeout(() => goToPage(2), 800);
+    }
+
+    async function handleZipOrFolderUpload(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        
+        let matched = 0;
+        showToast("正在解析并载入音频...");
+
+        for (let file of files) {
+            if (file.name.endsWith('.zip')) {
+                try {
+                    const zip = await JSZip.loadAsync(file);
+                    for (let relativePath in zip.files) {
+                        const zipEntry = zip.files[relativePath];
+                        if (zipEntry.dir) continue;
+                        
+                        const fileName = zipEntry.name.split('/').pop().replace(/\.[^/.]+$/, "").trim();
+                        for (let sound of BASE_SOUNDS) {
+                            if (fileName.includes(sound.name) || sound.name.includes(fileName)) {
+                                const blob = await zipEntry.async('blob');
+                                await saveFileToDB(sound.name, blob);
+                                matched++;
+                                break;
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.error("解压出错:", e);
+                }
+            } else {
+                const cleanName = file.name.replace(/\.[^/.]+$/, "").trim();
+                for (let sound of BASE_SOUNDS) {
+                    if (cleanName.includes(sound.name) || sound.name.includes(cleanName)) {
+                        await saveFileToDB(sound.name, file);
+                        matched++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (matched > 0) {
+            showToast(`成功匹配并导入 ${matched} 个音频！`);
+            goToPage(2);
+        } else {
+            showToast("已导入文件，前往主页查看");
+            goToPage(2);
+        }
+    }
+
+    async function downloadZipToDesktop() {
+        showToast("正在打包 10 个音效文件...");
+        let zip = new JSZip();
+
+        for (let sound of BASE_SOUNDS) {
+            if (!sound.url) continue;
+            try {
+                const res = await fetch(sound.url);
+                const blob = await res.blob();
+                zip.file(`${sound.name}.mp3`, blob);
+            } catch(e){}
+        }
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        const fileName = '荣誉盒10核心音效包.zip';
+
+        if (window.electron && window.electron.saveToDesktop) {
+            window.electron.saveToDesktop(content, fileName);
+        } else {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(content);
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast("打包完成，已发起下载！");
+        }
+    }
+
+    function renderPage2Grid() {
+        const grid = document.getElementById('mainSoundGrid');
+        grid.innerHTML = '';
+        BASE_SOUNDS.forEach(item => {
+            const key = customKeys[item.id] || item.defaultKey;
+            grid.appendChild(createCard(item, key));
+        });
+    }
+
+    function renderPage3Grid() {
+        const grid = document.getElementById('customSoundGrid');
+        grid.innerHTML = '';
+        const inherit = document.getElementById('chkInherit').checked;
+
+        if (inherit) {
+            BASE_SOUNDS.forEach(item => {
+                const key = customKeys[item.id] || item.defaultKey;
+                grid.appendChild(createCard(item, key));
+            });
+        }
+
+        customSounds.forEach(item => {
+            const key = customKeys[item.id] || '未绑定';
+            grid.appendChild(createCard(item, key));
+        });
+    }
+
+    function createCard(item, key) {
+        const card = document.createElement('div');
+        card.className = 'sound-card';
+        card.dataset.id = item.id;
+        card.dataset.key = key.toUpperCase();
+        card.innerHTML = `<span class="key-badge">${key}</span><span>${item.name}</span>`;
+        card.onclick = () => playSound(item, card);
+        return card;
+    }
+
+    async function handleAddCustomAudio(event) {
+        const file = event.target.files[0];
+        const customName = document.getElementById('customNameInput').value.trim();
+        if (!file) return;
+
+        const soundName = customName || file.name.replace(/\.[^/.]+$/, "").trim();
+        const soundId = 'custom_' + Date.now();
+
+        await saveFileToDB(soundName, file);
+        customSounds.push({ id: soundId, name: soundName });
+        localStorage.setItem('custom_sounds_v3', JSON.stringify(customSounds));
+
+        document.getElementById('customNameInput').value = '';
+        showToast(`自定义音效《${soundName}》已添加`);
+        renderPage3Grid();
+    }
+
+    // 兼具 WebAudio (本地) 与 HTML5 Audio (直接网络防跨域) 播放器
+    async function playSound(item, cardEl) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        stopAll(false);
+
+        try {
+            // 1. 本地存储优先
+            const blob = await getFileFromDB(item.name);
+            if (blob) {
+                const arrayBuf = await blob.arrayBuffer();
+                const buffer = await audioCtx.decodeAudioData(arrayBuf);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(gainNode);
+                source.start();
+
+                cardEl.classList.add('playing');
+                activeSources.push(source);
+                activeCards.push(cardEl);
+
+                source.onended = () => {
+                    cardEl.classList.remove('playing');
+                    activeCards = activeCards.filter(c => c !== cardEl);
+                };
+                return;
+            }
+
+            // 2. 联网直播（使用 Audio 标签自动绕过 CORS 限制）
+            if (item.url) {
+                const audio = new Audio(item.url);
+                audio.volume = gainNode.gain.value;
+                audio.play().catch(e => console.error("播放受阻:", e));
+
+                cardEl.classList.add('playing');
+                activeCards.push(cardEl);
+                activeSources.push(audio);
+
+                audio.onended = () => {
+                    cardEl.classList.remove('playing');
+                    activeCards = activeCards.filter(c => c !== cardEl);
+                };
+                audio.onerror = () => {
+                    cardEl.classList.remove('playing');
+                    showToast(`播放失败，请检查网络链接`);
+                };
+            } else {
+                showToast(`未找到《${item.name}》音频资源`);
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('播放失败');
+        }
+    }
+
+    function stopAll(showMsg = true) {
+        activeSources.forEach(s => { 
+            try { 
+                if (s.stop) s.stop(); 
+                if (s.pause) { s.pause(); s.currentTime = 0; }
+            } catch(e){} 
+        });
+        activeSources = [];
+        activeCards.forEach(c => c.classList.remove('playing'));
+        activeCards = [];
+        if (showMsg) showToast('已停止播放');
+    }
+
+    function changeVolume(val) {
+        gainNode.gain.value = val;
+        document.querySelectorAll('.vol-num').forEach(e => e.textContent = Math.round(val * 100) + '%');
+        document.querySelectorAll('.vol-range').forEach(e => e.value = val);
+    }
+
+    function openKeyModal(target) {
+        currentModalTarget = target;
+        const list = document.getElementById('keyModalList');
+        list.innerHTML = '';
+
+        let itemsToBind = target === 'main' ? [...BASE_SOUNDS] : [...BASE_SOUNDS, ...customSounds];
+
+        itemsToBind.forEach(item => {
+            const curKey = customKeys[item.id] || item.defaultKey || '未绑定';
+            const row = document.createElement('div');
+            row.className = 'row-item';
+            row.innerHTML = `
+                <span>${item.name}</span>
+                <button class="btn-bind" onclick="startListenKey('${item.id}')">
+                    ${listeningSoundId === item.id ? '按下按键绑定...' : `[ ${curKey} ]`}
+                </button>
+            `;
+            list.appendChild(row);
+        });
+        document.getElementById('keyModal').style.display = 'flex';
+    }
+
+    function closeKeyModal() {
+        listeningSoundId = null;
+        document.getElementById('keyModal').style.display = 'none';
+        if (currentPage === 2) renderPage2Grid();
+        if (currentPage === 3) renderPage3Grid();
+    }
+
+    function startListenKey(id) {
+        listeningSoundId = id;
+        openKeyModal(currentModalTarget);
+    }
+
+    function getComboString(e) {
+        let keys = [];
+        if (e.ctrlKey) keys.push('CTRL');
+        if (e.shiftKey) keys.push('SHIFT');
+        if (e.altKey) keys.push('ALT');
+
+        let mainKey = e.key.toUpperCase();
+        if (!['CONTROL', 'SHIFT', 'ALT', 'META'].includes(mainKey)) {
+            keys.push(mainKey);
+        }
+        return keys.join('+');
+    }
+
+    window.addEventListener('keydown', (e) => {
+        const combo = getComboString(e);
+
+        if (listeningSoundId) {
+            e.preventDefault();
+            if (e.key.toUpperCase() !== 'ESCAPE') {
+                customKeys[listeningSoundId] = combo;
+                localStorage.setItem('custom_keys_v3', JSON.stringify(customKeys));
+                showToast(`热键修改为: ${combo}`);
+            }
+            listeningSoundId = null;
+            openKeyModal(currentModalTarget);
+            return;
+        }
+
+        if (document.activeElement.tagName === 'INPUT') return;
+
+        const cards = document.querySelectorAll('.sound-card');
+        for (let card of cards) {
+            if (card.dataset.key === combo) {
+                e.preventDefault();
+                card.click();
+                break;
+            }
+        }
+    });
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 1600);
+    }
+
+    window.addEventListener('load', () => {
+        goToPage(1);
+    });
+    </script>
+</body>
+</html>
